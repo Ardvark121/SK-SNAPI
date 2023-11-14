@@ -37,7 +37,7 @@ module.exports = {
     const { username, email } = req.body;
     try {
       const updatedUser = await User.findByIdAndUpdate(
-        req.params.ID,
+        { _id: req.params.ID },
         { username, email },
         { new: true }
       );
