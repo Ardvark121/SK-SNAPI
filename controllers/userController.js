@@ -67,13 +67,16 @@ module.exports = {
 
   async addFriend(req, res) {
     try {
-      const updatedUser1 = await User.findByIdAndUpdate(
+      const updatedUser = await User.findOneAndUpdate(
+        { _id: req.params.ID },
         {
-          _id: req.params.ID,
+          $push: {
+            friends: req.params.friendId,
+          },
         },
-        { $addToSet: { friends: req.params.friendId } }
+        { new: true }
       );
-      if (updatedUser1) {
+      if (updatedUser) {
         res.status(200).json({ message: "Sucsess" });
       } else {
         res.status(400).json({ message: "No user assosiated with that ID" });
@@ -85,11 +88,14 @@ module.exports = {
 
   async deleteFriend(req, res) {
     try {
-      const deletedFriend = await User.findByIdAndDelete(
+      const deletedFriend = await User.findOneAndUpdate(
+        { _id: req.params.ID },
         {
-          _id: req.params.ID,
+          $pull: {
+            friends: req.params.friendId,
+          },
         },
-        { $pull: { friends: req.params.friendId } }
+        { new: true }
       );
       if (deletedFriend) {
         res.status(200).json({ message: "Sucsess" });

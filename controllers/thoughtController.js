@@ -1,4 +1,4 @@
-const { Thought } = require("../models");
+const { Thought, User } = require("../models");
 
 module.exports = {
   async getAllThoughts(req, res) {
@@ -29,7 +29,20 @@ module.exports = {
   async createThought(req, res) {
     try {
       const thought = await Thought.create(req.body);
-      res.json(thought);
+      const updateUser = await User.findOneAndUpdate(
+        { username: req.body.username },
+        {
+          $push: {
+            thoughts: thought._id,
+          },
+        },
+        { new: true }
+      );
+      if (thought && updateUser) {
+        res.status(200).json({ message: "Sucsess" });
+      } else {
+        res.status(400).json({ message: "No Thought assosiated with that ID" });
+      }
     } catch (err) {
       res.status(400).json(err);
     }
@@ -55,15 +68,51 @@ module.exports = {
 
   async deleteThought(req, res) {
     try {
-      const Thought = await Thought.findOneAndDelete({
+      const thought = await Thought.findOneAndDelete({
         _id: req.params.thoughtId,
       });
-      if (!Thought) {
+      if (!thought) {
         return res.status(400).json({ message: "No Thoughts match that ID" });
       }
       res.json({ message: "Sucsessfully deleted" });
     } catch (err) {
       res.status(400).json(err);
+    }
+  },
+
+  async createReaction(req, res) {
+    const newReaction = req.body;
+    try {
+      const updatedReaction = await Thought.findByIdAndUpdate(
+        { _id: req.params.thoughtId },
+        { $push: { reactions: newReaction } },
+        { new: true }
+      );
+      if (updatedReaction) {
+        res.status(200).json({ message: "Sucsess" });
+      } else {
+        res.status(400).json({ message: "No Thought assosiated with that ID" });
+      }
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  },
+
+  async deleteReaction(req, res) {
+    const newReaction = req.body;
+    try {
+      const deleteReaction = await Thought.findByIdAndUpdate(
+        { _id: req.params.thoughtId },
+        { $pull: { reactions: newReaction } },
+        { new: true }
+      );
+      if (deleteReaction) {
+        res.status(200).json({ message: "Sucsess", Thought: updatedThought });
+      } else {
+        res.status(400).json({ message: "No Thought assosiated with that ID" });
+      }
+    } catch (err) {
+      res.status(500).json(err);
     }
   },
 };
